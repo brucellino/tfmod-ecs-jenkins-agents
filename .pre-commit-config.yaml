@@ -11,6 +11,10 @@ repos:
     hooks:
       # - id: infracost_breakdown
       - id: terraform_fmt
+        args:
+          - --hook-config=--path-to-file=README.md
+          - --hook-config=--add-to-existing-file=true
+          - --hook-config=--create-file-if-not-exist=true
       - id: terraform_docs
       - id: terraform_validate
       - id: terraform_tfsec
