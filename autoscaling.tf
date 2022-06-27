@@ -1,3 +1,10 @@
+data "http" "gh_key" {
+  url = "https://github.com/${var.owner_account}.keys"
+}
+resource "aws_key_pair" "agent" {
+  key_name   = "jenkins-key"
+  public_key = data.http.gh_key.body
+}
 resource "aws_launch_configuration" "ecs_cluster" {
   name                 = "Jenkins ECS ${var.cluster_name} ${var.environment}"
   iam_instance_profile = aws_iam_instance_profile.ingest.name
@@ -8,14 +15,14 @@ resource "aws_launch_configuration" "ecs_cluster" {
     create_before_destroy = true
   }
 
-  security_groups = ["sg-01fbfc140fea20fd7", "sg-0b99b896b59c1c87d", "sg-03f7a3fe8d89906f7"]
-  // security_groups             = []
+  # security_groups = ["sg-01fbfc140fea20fd7", "sg-0b99b896b59c1c87d", "sg-03f7a3fe8d89906f7"]
+  # // security_groups             = []
   instance_type               = var.jenkins_agent_instance_type
   associate_public_ip_address = false
-  key_name                    = "jenkins_key"
+  key_name                    = aws_key_pair.agent.key_name
   root_block_device {
     encrypted             = true
-    volume_type           = "gp2"
+    volume_type           = "gp3"
     volume_size           = 100
     delete_on_termination = true
   }
@@ -48,9 +55,8 @@ resource "aws_autoscaling_group" "ecs_nodes" {
   max_size         = 20
 
   health_check_type    = "EC2"
-  vpc_zone_identifier  = data.aws_subnet_ids.private_subnet_ids.ids
+  vpc_zone_identifier  = toset(data.aws_subnets.private_subnets.ids)
   launch_configuration = aws_launch_configuration.ecs_cluster.name
-
 }
 
 resource "aws_autoscaling_policy" "cpu-policy" {

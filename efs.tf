@@ -11,8 +11,7 @@ resource "aws_security_group_rule" "efs_nfs" {
   from_port         = 2049
   to_port           = 2049
   protocol          = "tcp"
-  for_each          = data.aws_subnet.internal
-  cidr_blocks       = [each.value.cidr_block]
+  cidr_blocks       = [for s in data.aws_subnet.internal : s.cidr_block]
   security_group_id = aws_security_group.efs_mount_target.id
 }
 
@@ -28,6 +27,6 @@ resource "aws_efs_file_system" "ecs-build-artifacts" {
 resource "aws_efs_mount_target" "nodes" {
   file_system_id  = aws_efs_file_system.ecs-build-artifacts.id
   security_groups = [aws_security_group.efs_mount_target.id]
-  for_each        = data.aws_subnet_ids.private_subnet_ids.ids
+  for_each        = toset(data.aws_subnets.private_subnets.ids)
   subnet_id       = each.value
 }

@@ -1,3 +1,4 @@
+data "aws_region" "current" {}
 data "aws_ami" "ecs_ami" {
   owners      = ["amazon"]
   name_regex  = "^.*ecs.*-2.*"
@@ -13,44 +14,27 @@ data "aws_vpc" "vpc" {
   default = false
   filter {
     name   = "tag:Environment"
-    values = ["prod"]
+    values = [var.environment]
   }
 
   filter {
     name   = "tag:Name"
-    values = ["infra-eu-central-1"]
+    values = ["infra-${data.aws_region.current.name}"]
   }
 }
 
 # Get subnets tagged internal
-data "aws_subnet_ids" "private_subnet_ids" {
-  vpc_id = data.aws_vpc.vpc.id
+data "aws_subnets" "private_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.vpc.id]
+  }
   tags = {
+    # Name  = "internal"
     Scope = "internal"
   }
 }
-
 data "aws_subnet" "internal" {
-  for_each = data.aws_subnet_ids.private_subnet_ids.ids
+  for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
-}
-
-# internal subnet in euc1b
-data "aws_subnet" "internal_b" {
-  state             = "available"
-  availability_zone = "eu-central-1b"
-  filter {
-    name   = "tag:Scope"
-    values = ["internal"]
-  }
-}
-
-# internal subnet in euc1a
-data "aws_subnet" "internal_a" {
-  state             = "available"
-  availability_zone = "eu-central-1a"
-  filter {
-    name   = "tag:Scope"
-    values = ["internal"]
-  }
 }

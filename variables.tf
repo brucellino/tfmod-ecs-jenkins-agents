@@ -31,3 +31,12 @@ variable "efs_name" {
     error_message = "Invalid EFS name."
   }
 }
+
+variable "owner_account" {
+  description = "Github account of the owner of the service. We need this to get the ssh key"
+  type        = string
+}
+
+output "subnets" {
+  value = data.aws_subnets.private_subnets
+}
