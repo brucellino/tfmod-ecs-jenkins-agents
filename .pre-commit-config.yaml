@@ -7,7 +7,7 @@ repos:
       - id: trailing-whitespace
       - id: detect-private-key
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.72.1
+    rev: v1.72.2
     hooks:
       # - id: infracost_breakdown
       - id: terraform_fmt
@@ -29,3 +29,8 @@ repos:
       - id: commitlint
         stages: [commit-msg]
         additional_dependencies: ["@commitlint/config-conventional"]
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.16.2
+    hooks:
+     - id: check-github-actions
+     - id: check-github-workflows
