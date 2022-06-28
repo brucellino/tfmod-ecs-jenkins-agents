@@ -30,3 +30,10 @@ resource "aws_efs_mount_target" "nodes" {
   for_each        = toset(data.aws_subnets.private_subnets.ids)
   subnet_id       = each.value
 }
+
+resource "aws_efs_access_point" "fargate" {
+  file_system_id = aws_efs_file_system.ecs-build-artifacts.id
+  tags = {
+    Name = "FARGATE"
+  }
+}
